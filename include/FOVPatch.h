@@ -18,36 +18,34 @@ private:
                 return;
             }
 
-            auto*      settings     = Settings::GetSingleton();
-            const bool isFirstPerson = (a_camera->currentState->id == RE::CameraState::kFirstPerson);
-
-            // Determine if we should be actively overriding FOV right now
-            const bool shouldOverride = isFirstPerson
-                                     && settings->enableFOVOverride
-                                     && !IsInDialogue();
+            auto*      settings      = Settings::GetSingleton();
+            const bool isFirstPerson  = (a_camera->currentState->id == RE::CameraState::kFirstPerson);
 
             auto* playerCamera = static_cast<RE::PlayerCamera*>(a_camera);
             auto& runtimeData  = playerCamera->GetRuntimeData2();
 
-            if (shouldOverride) {
-                // Save the game's original values before we touch anything
-                if (!isCurrentlyOverriding) {
-                    savedWorldFOV         = runtimeData.worldFOV;
-                    savedFirstPersonFOV   = runtimeData.firstPersonFOV;
-                    isCurrentlyOverriding = true;
+            if (isFirstPerson && settings->enableFOVOverride) {
+                if (!wasInFirstPerson) {
+                    savedWorldFOV       = runtimeData.worldFOV;
+                    savedFirstPersonFOV = runtimeData.firstPersonFOV;
                 }
 
-                runtimeData.firstPersonFOV = settings->firstPersonHandsFOV;
-                runtimeData.worldFOV       = settings->firstPersonWorldFOV;
+                if (!IsInDialogue()) {
+                    runtimeData.firstPersonFOV = settings->firstPersonHandsFOV;
+                    runtimeData.worldFOV       = settings->firstPersonWorldFOV;
+                    isCurrentlyOverriding = true;
+                } else if (isCurrentlyOverriding) {
+                    runtimeData.worldFOV       = savedWorldFOV;
+                    runtimeData.firstPersonFOV = savedFirstPersonFOV;
+                    isCurrentlyOverriding      = false;
+                }
             } else if (isCurrentlyOverriding) {
-                // We were overriding but should stop — restore the game's original values
-                // and get completely out of the way
                 runtimeData.worldFOV       = savedWorldFOV;
                 runtimeData.firstPersonFOV = savedFirstPersonFOV;
                 isCurrentlyOverriding      = false;
             }
-            // When not overriding and not restoring, do nothing — let the game
-            // and other mods control FOV freely
+
+            wasInFirstPerson = isFirstPerson;
         }
 
         static bool IsInDialogue()
@@ -59,6 +57,7 @@ private:
         }
 
         static inline REL::Relocation<decltype(thunk)> func;
+        static inline bool  wasInFirstPerson{ false };
         static inline bool  isCurrentlyOverriding{ false };
         static inline float savedWorldFOV{ 0.0f };
         static inline float savedFirstPersonFOV{ 0.0f };

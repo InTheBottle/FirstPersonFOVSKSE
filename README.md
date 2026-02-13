@@ -1,6 +1,6 @@
 
 ## What does it do?  
-
+Enables easy control of First person FOV
 
 ## Requirements
 * [CMake](https://cmake.org/)
@@ -15,3 +15,4 @@
 * Open `x64 Native Tools Command Prompt`
 * Run `cmake`
 * Close the cmd window
+

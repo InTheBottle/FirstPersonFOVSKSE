@@ -44,6 +44,16 @@ private:
         ImGuiMCP::Separator();
         ImGuiMCP::Spacing();
 
+        ImGuiMCP::SeparatorText("Menu Settings");
+
+        ImGuiMCP::Checkbox("Disable Menu Zoom", &settings->disableMenuZoom);
+        ImGuiMCP::TextDisabled("Removes the zoom/freeze-frame effect when opening menus.");
+        ImGuiMCP::TextDisabled("Takes effect the next time a menu is opened.");
+
+        ImGuiMCP::Spacing();
+        ImGuiMCP::Separator();
+        ImGuiMCP::Spacing();
+
         if (ImGuiMCP::Button("Save Settings")) {
             settings->Save();
             savedTimer = 3.0f;

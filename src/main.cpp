@@ -1,5 +1,6 @@
 #include "FOVPatch.h"
 #include "InGameMenu.h"
+#include "MenuZoomPatch.h"
 #include "Settings.h"
 
 void InitLogger()
@@ -29,6 +30,7 @@ void OnMessage(SKSE::MessagingInterface::Message* a_msg)
     case SKSE::MessagingInterface::kDataLoaded:
         Settings::GetSingleton()->Load();
         FOVPatch::Install();
+        MenuZoomPatch::Install();
         InGameMenu::Register();
         break;
     default:

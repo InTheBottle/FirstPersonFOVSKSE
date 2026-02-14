@@ -15,10 +15,13 @@ public:
         firstPersonHandsFOV  = static_cast<float>(ini.GetDoubleValue("FOV", "fFirstPersonHandsFOV", 80.0));
         firstPersonWorldFOV  = static_cast<float>(ini.GetDoubleValue("FOV", "fFirstPersonWorldFOV", 80.0));
 
+        disableMenuZoom      = ini.GetBoolValue("Menus", "bDisableMenuZoom", true);
+
         logger::info("Settings loaded:");
         logger::info("  FOV Override Enabled: {}", enableFOVOverride);
         logger::info("  Hands FOV: {}", firstPersonHandsFOV);
         logger::info("  World FOV: {}", firstPersonWorldFOV);
+        logger::info("  Disable Menu Zoom: {}", disableMenuZoom);
     }
 
     void Save()
@@ -32,6 +35,8 @@ public:
         ini.SetDoubleValue("FOV", "fFirstPersonHandsFOV", static_cast<double>(firstPersonHandsFOV));
         ini.SetDoubleValue("FOV", "fFirstPersonWorldFOV", static_cast<double>(firstPersonWorldFOV));
 
+        ini.SetBoolValue("Menus", "bDisableMenuZoom", disableMenuZoom);
+
         ini.SaveFile(defaultPath);
         logger::info("Settings saved to INI.");
     }
@@ -41,10 +46,12 @@ public:
         enableFOVOverride   = true;
         firstPersonHandsFOV = 80.0f;
         firstPersonWorldFOV = 80.0f;
+        disableMenuZoom     = true;
         logger::info("Settings reset to defaults.");
     }
 
     bool  enableFOVOverride{ true };
     float firstPersonHandsFOV{ 80.0f };   // FOV for hands/arms rendering
     float firstPersonWorldFOV{ 80.0f };   // World FOV when in first person
+    bool  disableMenuZoom{ true };        // Remove the zoom/freeze-frame effect when opening menus
 };

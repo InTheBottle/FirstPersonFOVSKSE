@@ -9,9 +9,6 @@ public:
     {
         logger::info("Installing MenuZoomPatch...");
 
-        // Hook TESCamera::SetState to block kTween camera state transitions
-        // This prevents the zoom-out-to-third-person effect when opening menus
-        // TESCamera::SetState = RELOCATION_ID(32290, 33026)
         auto setStateAddr = REL::RelocationID(32290, 33026).address();
 
         SKSE::AllocTrampoline(14);
@@ -29,6 +26,14 @@ private:
         auto* settings = Settings::GetSingleton();
 
         if (settings->disableMenuZoom && a_camera && a_state) {
+            const bool cameraInHorseState = a_camera->currentState &&
+                a_camera->currentState->id == RE::CameraState::kMount;
+            if (auto* player = RE::PlayerCharacter::GetSingleton();
+                player && (player->IsOnMount() || cameraInHorseState)) {
+                originalSetState(a_camera, a_state);
+                return;
+            }
+
             auto* playerCamera = RE::PlayerCamera::GetSingleton();
             if (playerCamera && a_camera == static_cast<RE::TESCamera*>(playerCamera)) {
                 auto& runtimeData = playerCamera->GetRuntimeData();

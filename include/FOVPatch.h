@@ -20,12 +20,19 @@ private:
                     // Clean up any active state
                     hasSnapshot = false;
                     wasInFirstPerson = false;
+                    wasInThirdPerson = false;
                     if (isCurrentlyOverriding && a_camera) {
                         auto* playerCam = static_cast<RE::PlayerCamera*>(a_camera);
                         auto& rd = playerCam->GetRuntimeData2();
                         rd.worldFOV       = savedWorldFOV;
                         rd.firstPersonFOV = savedFirstPersonFOV;
                         isCurrentlyOverriding = false;
+                    }
+                    if (isCurrentlyOverridingTP && a_camera) {
+                        auto* playerCam = static_cast<RE::PlayerCamera*>(a_camera);
+                        auto& rd = playerCam->GetRuntimeData2();
+                        rd.worldFOV = savedWorldFOV_TP_orig;
+                        isCurrentlyOverridingTP = false;
                     }
                     func(a_camera);
                     return;
@@ -129,6 +136,28 @@ private:
             }
 
             wasInFirstPerson = isFirstPerson;
+
+            // --- Third-person FOV override ---
+            const bool isThirdPerson = (a_camera->currentState->id == RE::CameraState::kThirdPerson);
+
+            if (isThirdPerson && settings->enableThirdPersonFOVOverride) {
+                if (!wasInThirdPerson) {
+                    savedWorldFOV_TP_orig = runtimeData.worldFOV;
+                }
+
+                if (!IsInDialogue()) {
+                    runtimeData.worldFOV = settings->thirdPersonWorldFOV;
+                    isCurrentlyOverridingTP = true;
+                } else if (isCurrentlyOverridingTP) {
+                    runtimeData.worldFOV       = savedWorldFOV_TP_orig;
+                    isCurrentlyOverridingTP    = false;
+                }
+            } else if (isCurrentlyOverridingTP) {
+                runtimeData.worldFOV       = savedWorldFOV_TP_orig;
+                isCurrentlyOverridingTP    = false;
+            }
+
+            wasInThirdPerson = isThirdPerson;
         }
 
         static bool IsInDialogue()
@@ -154,6 +183,11 @@ private:
         static inline bool  isCurrentlyOverriding{ false };
         static inline float savedWorldFOV{ 0.0f };
         static inline float savedFirstPersonFOV{ 0.0f };
+
+        // Third-person FOV state
+        static inline bool  wasInThirdPerson{ false };
+        static inline bool  isCurrentlyOverridingTP{ false };
+        static inline float savedWorldFOV_TP_orig{ 0.0f };
 
         static inline bool hasSnapshot{ false };
         static inline RE::NiTransform  savedCameraRootLocal{};

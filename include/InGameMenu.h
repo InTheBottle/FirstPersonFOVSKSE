@@ -44,6 +44,19 @@ private:
         ImGuiMCP::Separator();
         ImGuiMCP::Spacing();
 
+        ImGuiMCP::SeparatorText("Third Person FOV");
+
+        ImGuiMCP::Checkbox("Enable Third Person FOV Override", &settings->enableThirdPersonFOVOverride);
+
+        if (settings->enableThirdPersonFOVOverride) {
+            ImGuiMCP::SliderFloat("Third Person World FOV", &settings->thirdPersonWorldFOV, 1.0f, 165.0f, "%.0f");
+            ImGuiMCP::TextDisabled("World field of view in third person. Default: 80");
+        }
+
+        ImGuiMCP::Spacing();
+        ImGuiMCP::Separator();
+        ImGuiMCP::Spacing();
+
         ImGuiMCP::SeparatorText("Menu Settings");
 
         ImGuiMCP::Checkbox("Disable Menu Zoom", &settings->disableMenuZoom);

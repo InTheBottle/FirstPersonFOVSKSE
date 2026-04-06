@@ -46,14 +46,13 @@
       "hidden": true,
       "architecture": {
         "value": "x64",
-        "strategy": "external"
+        "strategy": "set"
       }
     },
     {
       "name": "msvc",
       "hidden": true,
-      "generator": "Ninja",
-      "cmakeExecutable": "C:/Program Files/CMake/bin/cmake.exe",
+      "generator": "Visual Studio 17 2022",
       "environment": {
         "COMMONLIBSSE_COMPILER": "/cgthreads8 /diagnostics:caret /EHsc /fp:contract /fp:except- /guard:cf- /MP /permissive- /sdl /W4 /Zc:__cplusplus /Zc:enumTypes /Zc:lambda /Zc:preprocessor /Zc:referenceBinding /Zc:rvalueCast /Zc:templateScope /Zc:ternary",
         "COMMONLIBSSE_LINKER": "/CGTHREADS:8 /MACHINE:x64 /DEBUG:FULL"
@@ -73,9 +72,6 @@
     {
       "name": "build-release-msvc",
       "inherits": ["base", "vcpkg", "win32-unicode", "x64", "msvc"],
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      },
       "displayName": "Release",
       "description": "Optimized release build.",
       "binaryDir": "${sourceDir}/build/release-msvc"
@@ -83,9 +79,6 @@
     {
       "name": "build-debug-msvc",
       "inherits": ["base", "vcpkg", "win32-unicode", "x64", "msvc"],
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      },
       "displayName": "Debug",
       "description": "Debug build.",
       "binaryDir": "${sourceDir}/build/debug-msvc"
@@ -96,12 +89,14 @@
       "name": "release-msvc",
       "displayName": "1. Release (MSVC)",
       "configurePreset": "build-release-msvc",
+      "configuration": "RelWithDebInfo",
       "description": "Optimized release build."
     },
     {
       "name": "debug-msvc",
       "displayName": "2. Debug (MSVC)",
       "configurePreset": "build-debug-msvc",
+      "configuration": "Debug",
       "description": "Debug build."
     }
   ]

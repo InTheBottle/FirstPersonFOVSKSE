@@ -27,16 +27,14 @@ configure_file(
   @ONLY
 )
 
-set(PUBLIC_HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME})
-
 # Add headers
 file(
   GLOB_RECURSE
   headers
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
 )
-list(REMOVE_ITEM headers ${CMAKE_CURRENT_SOURCE_DIR}/include/PCH.h)
+list(REMOVE_ITEM headers ${CMAKE_CURRENT_SOURCE_DIR}/src/PCH.h)
 
 # Add sources
 file(
@@ -78,20 +76,13 @@ target_include_directories(
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
   $<INSTALL_INTERFACE:src>
   ${SIMPLEINI_INCLUDE_DIRS}
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
 target_precompile_headers(
   ${PROJECT_NAME}
   PRIVATE
-  include/PCH.h
+  src/PCH.h
   ${SIMPLEINI_INCLUDE_DIRS}/SimpleIni.h
-)
-
-install(
-  DIRECTORY ${PUBLIC_HEADER_DIR}
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 install(

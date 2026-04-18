@@ -15,27 +15,22 @@ private:
         {
             const bool cameraInHorseState = a_camera && a_camera->currentState &&
                 a_camera->currentState->id == RE::CameraState::kMount;
+            bool onHorse = cameraInHorseState;
             if (auto* player = RE::PlayerCharacter::GetSingleton()) {
-                if (player->IsOnMount() || cameraInHorseState) {
-                    // Clean up any active state
-                    hasSnapshot = false;
-                    wasInFirstPerson = false;
-                    wasInThirdPerson = false;
-                    if (isCurrentlyOverriding && a_camera) {
-                        auto* playerCam = static_cast<RE::PlayerCamera*>(a_camera);
-                        auto& rd = playerCam->GetRuntimeData2();
-                        rd.worldFOV       = savedWorldFOV;
-                        rd.firstPersonFOV = savedFirstPersonFOV;
-                        isCurrentlyOverriding = false;
-                    }
-                    if (isCurrentlyOverridingTP && a_camera) {
-                        auto* playerCam = static_cast<RE::PlayerCamera*>(a_camera);
-                        auto& rd = playerCam->GetRuntimeData2();
-                        rd.worldFOV = savedWorldFOV_TP_orig;
-                        isCurrentlyOverridingTP = false;
-                    }
-                    func(a_camera);
-                    return;
+                if (player->IsOnMount()) onHorse = true;
+            }
+            if (onHorse) {
+                // On horseback, clear first-person state (no FP override on a horse)
+                // but let the third-person FOV override handle worldFOV below so
+                // the user's TP FOV is applied smoothly instead of reverting to
+                // vanilla.
+                wasInFirstPerson = false;
+                hasSnapshot      = false;
+                if (isCurrentlyOverriding && a_camera) {
+                    auto* playerCam = static_cast<RE::PlayerCamera*>(a_camera);
+                    auto& rd = playerCam->GetRuntimeData2();
+                    rd.firstPersonFOV = savedFirstPersonFOV;
+                    isCurrentlyOverriding = false;
                 }
             }
 
@@ -159,15 +154,11 @@ private:
                     savedFirstPersonFOV = runtimeData.firstPersonFOV;
                 }
 
-                if (!IsInDialogue()) {
-                    runtimeData.firstPersonFOV = settings->firstPersonHandsFOV;
-                    runtimeData.worldFOV       = settings->firstPersonWorldFOV;
-                    isCurrentlyOverriding = true;
-                } else if (isCurrentlyOverriding) {
-                    runtimeData.worldFOV       = savedWorldFOV;
-                    runtimeData.firstPersonFOV = savedFirstPersonFOV;
-                    isCurrentlyOverriding      = false;
-                }
+                // Always apply the user's custom FOV, including in dialogue,
+                // so there is no FOV jump when dialogue opens/closes.
+                runtimeData.firstPersonFOV = settings->firstPersonHandsFOV;
+                runtimeData.worldFOV       = settings->firstPersonWorldFOV;
+                isCurrentlyOverriding = true;
             } else if (isCurrentlyOverriding) {
                 runtimeData.worldFOV       = savedWorldFOV;
                 runtimeData.firstPersonFOV = savedFirstPersonFOV;
@@ -177,20 +168,19 @@ private:
             wasInFirstPerson = isFirstPerson;
 
             // --- Third-person FOV override ---
-            const bool isThirdPerson = (a_camera->currentState->id == RE::CameraState::kThirdPerson);
+            // Also applies while on horseback (kMount) so the FOV stays smooth
+            // between on-foot TP and mounted camera.
+            const bool isThirdPerson =
+                (a_camera->currentState->id == RE::CameraState::kThirdPerson) ||
+                (a_camera->currentState->id == RE::CameraState::kMount) ||
+                onHorse;
 
             if (isThirdPerson && settings->enableThirdPersonFOVOverride) {
                 if (!wasInThirdPerson) {
                     savedWorldFOV_TP_orig = runtimeData.worldFOV;
                 }
-
-                if (!IsInDialogue()) {
-                    runtimeData.worldFOV = settings->thirdPersonWorldFOV;
-                    isCurrentlyOverridingTP = true;
-                } else if (isCurrentlyOverridingTP) {
-                    runtimeData.worldFOV       = savedWorldFOV_TP_orig;
-                    isCurrentlyOverridingTP    = false;
-                }
+                runtimeData.worldFOV    = settings->thirdPersonWorldFOV;
+                isCurrentlyOverridingTP = true;
             } else if (isCurrentlyOverridingTP) {
                 runtimeData.worldFOV       = savedWorldFOV_TP_orig;
                 isCurrentlyOverridingTP    = false;

@@ -57,6 +57,22 @@ private:
         ImGuiMCP::Separator();
         ImGuiMCP::Spacing();
 
+        ImGuiMCP::SeparatorText("Compatibility");
+
+        ImGuiMCP::Checkbox("Disable FOV Override During Dialogue", &settings->disableOverrideInDialogue);
+        ImGuiMCP::TextDisabled("Lets dialogue camera mods (e.g. Alternate Conversation");
+        ImGuiMCP::TextDisabled("Camera) control the camera and FOV while dialogue is open.");
+        if (settings->dialogueCameraModDetected) {
+            ImGuiMCP::TextColored({ 0.4f, 0.9f, 0.4f, 1.0f },
+                "Detected a dialogue camera mod - recommended: ON.");
+        } else {
+            ImGuiMCP::TextDisabled("No dialogue camera mod detected.");
+        }
+
+        ImGuiMCP::Spacing();
+        ImGuiMCP::Separator();
+        ImGuiMCP::Spacing();
+
         ImGuiMCP::SeparatorText("Menu Settings");
 
         ImGuiMCP::Checkbox("Disable Menu Zoom", &settings->disableMenuZoom);

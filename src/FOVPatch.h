@@ -151,16 +151,24 @@ private:
             const bool dialogueJustClosed = prevSkipForDialogue && !skipForDialogue;
             prevSkipForDialogue = skipForDialogue;
 
+            const bool skipForInventory    = settings->disableOverrideInInventory && IsInventoryMenuOpen();
+            const bool inventoryJustClosed = prevSkipForInventory && !skipForInventory;
+            prevSkipForInventory           = skipForInventory;
+            if (skipForInventory) {
+                isCurrentlyOverriding   = false;
+                isCurrentlyOverridingTP = false;
+                fpLerpT                 = 1.0f;
+                tpLerpT                 = 1.0f;
+                return;
+            }
+
             if (isFirstPerson && settings->enableFOVOverride && !skipForDialogue) {
                 if (!wasInFirstPerson) {
                     savedWorldFOV       = runtimeData.worldFOV;
                     savedFirstPersonFOV = runtimeData.firstPersonFOV;
                 }
 
-                if (dialogueJustClosed) {
-                    // Capture whatever FOV the dialogue-camera mod left us at
-                    // so we can ease back to the user's target instead of
-                    // snapping.
+                if (dialogueJustClosed || inventoryJustClosed) {
                     fpLerpStartHands = runtimeData.firstPersonFOV;
                     fpLerpStartWorld = runtimeData.worldFOV;
                     fpLerpT          = 0.0f;
@@ -197,7 +205,7 @@ private:
                 if (!wasInThirdPerson) {
                     savedWorldFOV_TP_orig = runtimeData.worldFOV;
                 }
-                if (dialogueJustClosed) {
+                if (dialogueJustClosed || inventoryJustClosed) {
                     tpLerpStartWorld = runtimeData.worldFOV;
                     tpLerpT          = 0.0f;
                 }
@@ -242,6 +250,14 @@ private:
             return false;
         }
 
+        static bool IsInventoryMenuOpen()
+        {
+            if (const auto ui = RE::UI::GetSingleton()) {
+                return ui->IsMenuOpen(RE::InventoryMenu::MENU_NAME);
+            }
+            return false;
+        }
+
         static inline REL::Relocation<decltype(thunk)> func;
 
         // First-person FOV state
@@ -255,9 +271,10 @@ private:
         static inline bool  isCurrentlyOverridingTP{ false };
         static inline float savedWorldFOV_TP_orig{ 0.0f };
 
-        // Dialogue-exit smoothing (ACC compatibility)
+        // Menu-exit smoothing (ACC + ShowPlayerInInventory compatibility)
         static constexpr float kDialogueLerpStep{ 1.0f / 30.0f }; // ~0.5s at 60fps
         static inline bool  prevSkipForDialogue{ false };
+        static inline bool  prevSkipForInventory{ false };
         static inline float fpLerpT{ 1.0f };          // 1.0 = inactive
         static inline float fpLerpStartHands{ 0.0f };
         static inline float fpLerpStartWorld{ 0.0f };

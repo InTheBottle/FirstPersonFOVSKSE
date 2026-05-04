@@ -18,6 +18,21 @@ public:
         return false;
     }
 
+    // Detect mods that drive their own FOV in the inventory menu.
+    // Extend this list if other inventory-FOV mods appear.
+    static bool DetectInventoryFovMod()
+    {
+        static constexpr const wchar_t* kKnownMods[] = {
+            L"ShowPlayerInInventory.dll",
+        };
+        for (auto* name : kKnownMods) {
+            if (GetModuleHandleW(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void Load()
     {
         constexpr auto defaultPath = L"Data/SKSE/Plugins/FirstPersonFOV.ini";
@@ -37,6 +52,10 @@ public:
         disableOverrideInDialogue = ini.GetBoolValue(
             "Compatibility", "bDisableOverrideInDialogue", dialogueCameraModDetected);
 
+        inventoryFovModDetected = DetectInventoryFovMod();
+        disableOverrideInInventory = ini.GetBoolValue(
+            "Compatibility", "bDisableOverrideInInventory", inventoryFovModDetected);
+
         disableMenuZoom      = ini.GetBoolValue("Menus", "bDisableMenuZoom", true);
 
         logger::info("Settings loaded:");
@@ -47,6 +66,8 @@ public:
         logger::info("  Third Person World FOV: {}", thirdPersonWorldFOV);
         logger::info("  Dialogue Camera Mod Detected: {}", dialogueCameraModDetected);
         logger::info("  Disable Override In Dialogue: {}", disableOverrideInDialogue);
+        logger::info("  Inventory FOV Mod Detected: {}", inventoryFovModDetected);
+        logger::info("  Disable Override In Inventory: {}", disableOverrideInInventory);
         logger::info("  Disable Menu Zoom: {}", disableMenuZoom);
     }
 
@@ -65,6 +86,7 @@ public:
         ini.SetDoubleValue("FOV", "fThirdPersonWorldFOV", static_cast<double>(thirdPersonWorldFOV));
 
         ini.SetBoolValue("Compatibility", "bDisableOverrideInDialogue", disableOverrideInDialogue);
+        ini.SetBoolValue("Compatibility", "bDisableOverrideInInventory", disableOverrideInInventory);
 
         ini.SetBoolValue("Menus", "bDisableMenuZoom", disableMenuZoom);
 
@@ -83,6 +105,8 @@ public:
         // to re-toggle every time they reset.
         dialogueCameraModDetected = DetectDialogueCameraMod();
         disableOverrideInDialogue = dialogueCameraModDetected;
+        inventoryFovModDetected   = DetectInventoryFovMod();
+        disableOverrideInInventory = inventoryFovModDetected;
         disableMenuZoom     = true;
         logger::info("Settings reset to defaults.");
     }
@@ -94,5 +118,7 @@ public:
     float thirdPersonWorldFOV{ 80.0f };   // World FOV when in third person
     bool  disableOverrideInDialogue{ false }; // Skip FOV override while DialogueMenu is open (ACC compat)
     bool  dialogueCameraModDetected{ false }; // Runtime-only: true if a known dialogue camera mod DLL is loaded
+    bool  disableOverrideInInventory{ false }; // Skip FOV override while InventoryMenu is open (ShowPlayerInInventory compat)
+    bool  inventoryFovModDetected{ false }; // Runtime-only: true if a known inventory FOV mod DLL is loaded
     bool  disableMenuZoom{ true };        // Remove the zoom/freeze-frame effect when opening menus
 };

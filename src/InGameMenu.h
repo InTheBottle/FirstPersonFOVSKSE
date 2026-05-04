@@ -70,6 +70,18 @@ private:
         }
 
         ImGuiMCP::Spacing();
+
+        ImGuiMCP::Checkbox("Disable FOV Override In Inventory", &settings->disableOverrideInInventory);
+        ImGuiMCP::TextDisabled("Lets inventory FOV mods (e.g. Show Player In Inventory)");
+        ImGuiMCP::TextDisabled("control the FOV while the inventory menu is open.");
+        if (settings->inventoryFovModDetected) {
+            ImGuiMCP::TextColored({ 0.4f, 0.9f, 0.4f, 1.0f },
+                "Detected an inventory FOV mod - recommended: ON.");
+        } else {
+            ImGuiMCP::TextDisabled("No inventory FOV mod detected.");
+        }
+
+        ImGuiMCP::Spacing();
         ImGuiMCP::Separator();
         ImGuiMCP::Spacing();
 
